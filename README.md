@@ -34,33 +34,26 @@ function startApolloServer(
 import dotenv from "dotenv";
 import { createServer } from "http";
 import express from "express";
-import { Socket } from "socket.io";
-import io, { createNamespace, initIO } from "setup-socket.io";
+import { Models } from "./interface";
+import models from "./database/models";
+import { startApolloServer } from "setup-apollo-server-express";
+import typeDefs from "./graphql/type_defs";
+import resolvers from "./graphql/resolvers";
+import { ExpressContext } from "apollo-server-express";
 
 dotenv.config();
 
-const ORIGIN = process.env.ORIGIN || "*";
+const HOST_NAME = process.env.HOST_NAME || "0.0.0.0";
+const PORT = parseInt(process.env.PORT || "5000", 10);
+const GRAPHQL_PATH = process.env.GRAPHQL_PATH || "/graphql";
 
 const app = express();
-const server = createServer(app);
+const httpServer = createServer(app);
 
-// Init io
-initIO(server, ORIGIN);
+function handleReq({ req }: ExpressContext): { message?: string; models?: Models } {
+    return { message: req.headers.cookie, models: models };
+}
 
-// Create client namespace
-const client = createNamespace("/client");
-
-io.on("connection", (socket: Socket) => {
-    socket.on("your-event", (message) => {
-        console.log(message);
-        console.log("Cookies:", socket.request.cookies);
-    });
-});
-
-client.on("connection", (socket: Socket) => {
-    socket.on("your-event", (message) => {
-        console.log(message);
-        console.log("Cookies:", socket.request.cookies);
-    });
-});
+// Start Apollo server
+startApolloServer(app, httpServer, HOST_NAME, PORT, typeDefs, resolvers, handleReq, GRAPHQL_PATH);
 ```
