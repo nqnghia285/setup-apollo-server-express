@@ -1,0 +1,38 @@
+{
+    "name": "setup-apollo-server-express",
+    "version": "1.0.1",
+    "description": "Setup Apollo server express.",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "repository": "https://github.com/nqnghia285/setup-apollo-server-express.git",
+    "author": "nghia <nqnghia285@gmail.com>",
+    "license": "MIT",
+    "private": false,
+    "scripts": {
+        "test": "echo \"Error: no test specified $npm_package_version\" && exit 1",
+        "prepare": "tsc",
+        "git": "git add -A && git commit -m \"Update version: %npm_package_version%\" && git push",
+        "push": "yarn publish",
+        "v": "yarn version --patch"
+    },
+    "homepage": "https://github.com/nqnghia285/setup-apollo-server-express.git#readme",
+    "keywords": [
+        "setup-apollo-server-express",
+        "startApolloServer"
+    ],
+    "files": [
+        "dist"
+    ],
+    "dependencies": {
+        "@types/ip": "^1.1.0",
+        "apollo-server-express": "^2.24.0",
+        "dotenv": "^9.0.2",
+        "express": "^4.17.1",
+        "graphql": "^15.5.0",
+        "http": "^0.0.1-security",
+        "ip": "^1.1.5"
+    },
+    "devDependencies": {
+        "cross-conf-env": "^1.2.1"
+    }
+}
