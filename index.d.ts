@@ -1,8 +1,29 @@
 import { Express } from "express";
 import { Server } from "http";
 import { ApolloServer, ExpressContext, IResolvers } from "apollo-server-express";
-import { DocumentNode } from "graphql";
+import { DocumentNode, GraphQLSchema } from "graphql";
 import { ContextFunction } from "apollo-server-core";
+
+/**
+ * @method startApolloServerWithSchema Start apollo server with apply middleware express
+ * @param app Express
+ * @param httpServer Server
+ * @param host string
+ * @param port number
+ * @param schema GraphQLSchema
+ * @param context object | ContextFunction<ExpressContext, object> | undefined
+ * @param path string
+ * @returns Promise<ApolloServer>
+ */
+export declare function startApolloServerWithSchema(
+    app: Express,
+    httpServer: Server,
+    host: string,
+    port: number,
+    schema: GraphQLSchema,
+    context?: object | ContextFunction<ExpressContext, object>,
+    path?: string,
+): Promise<ApolloServer>;
 
 /**
  * @method startApolloServer Start apollo server with apply middleware express

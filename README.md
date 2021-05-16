@@ -4,6 +4,29 @@
 
 ```typescript
 /**
+ * @method startApolloServerWithSchema Start apollo server with apply middleware express
+ * @param app Express
+ * @param httpServer Server
+ * @param host string
+ * @param port number
+ * @param schema GraphQLSchema
+ * @param context object | ContextFunction<ExpressContext, object> | undefined
+ * @param path string
+ * @returns Promise<ApolloServer>
+ */
+function startApolloServerWithSchema(
+    app: Express,
+    httpServer: Server,
+    host: string,
+    port: number,
+    schema: GraphQLSchema,
+    context?: object | ContextFunction<ExpressContext, object>,
+    path?: string,
+): Promise<ApolloServer>;
+```
+
+```typescript
+/**
  * @method startApolloServer Start apollo server with apply middleware express
  * @param app Express
  * @param httpServer Server
@@ -40,6 +63,7 @@ import { startApolloServer } from "setup-apollo-server-express";
 import typeDefs from "./graphql/type_defs";
 import resolvers from "./graphql/resolvers";
 import { ExpressContext } from "apollo-server-express";
+import { mergeSchemas } from "graphql-tools";
 
 dotenv.config();
 
@@ -56,4 +80,14 @@ function handleReq({ req }: ExpressContext): { message?: string; models?: Models
 
 // Start Apollo server
 startApolloServer(app, httpServer, HOST_NAME, PORT, typeDefs, resolvers, handleReq, GRAPHQL_PATH);
+
+// Or
+// Merge schema
+const schema = mergeSchemas({
+    schemas: [],
+    typeDefs: typeDefs,
+    resolvers: resolvers,
+});
+
+startApolloServerWithSchema(app, httpServer, HOST_NAME, PORT, schema, handleReq, GRAPHQL_PATH);
 ```

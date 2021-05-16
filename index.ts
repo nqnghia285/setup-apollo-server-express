@@ -2,38 +2,36 @@ import { Express } from "express";
 import { Server } from "http";
 import { address } from "ip";
 import { ApolloServer, ExpressContext, IResolvers } from "apollo-server-express";
-import { DocumentNode } from "graphql";
+import { DocumentNode, GraphQLSchema } from "graphql";
 import { ContextFunction } from "apollo-server-core";
 import dotenv from "dotenv";
+import { mergeSchemas } from "graphql-tools";
 
 dotenv.config();
 
 /**
- * @method startApolloServer Start apollo server with apply middleware express
+ * @method startApolloServerWithSchema Start apollo server with apply middleware express
  * @param app Express
  * @param httpServer Server
  * @param host string
  * @param port number
- * @param typeDefs string | DocumentNode | DocumentNode[] | string[] | undefined
- * @param resolvers IResolvers<any, any> | IResolvers<any, any>[] | undefined
+ * @param schema GraphQLSchema
  * @param context object | ContextFunction<ExpressContext, object> | undefined
  * @param path string
  * @returns Promise<ApolloServer>
  */
-export async function startApolloServer(
+export async function startApolloServerWithSchema(
     app: Express,
     httpServer: Server,
     host: string,
     port: number,
-    typeDefs?: string | DocumentNode | DocumentNode[] | string[],
-    resolvers?: IResolvers<any, any> | IResolvers<any, any>[],
+    schema: GraphQLSchema,
     context?: object | ContextFunction<ExpressContext, object>,
     path = "/graphql",
 ): Promise<ApolloServer> {
     // Init apollo server instance
     const apolloServer = new ApolloServer({
-        typeDefs: typeDefs,
-        resolvers: resolvers,
+        schema: schema,
         context: context,
         tracing: process.env.NODE_ENV === "development",
     });
@@ -57,4 +55,36 @@ export async function startApolloServer(
     });
 
     return apolloServer;
+}
+
+/**
+ * @method startApolloServer Start apollo server with apply middleware express
+ * @param app Express
+ * @param httpServer Server
+ * @param host string
+ * @param port number
+ * @param typeDefs string | DocumentNode | DocumentNode[] | string[] | undefined
+ * @param resolvers IResolvers<any, any> | IResolvers<any, any>[] | undefined
+ * @param context object | ContextFunction<ExpressContext, object> | undefined
+ * @param path string
+ * @returns Promise<ApolloServer>
+ */
+export async function startApolloServer(
+    app: Express,
+    httpServer: Server,
+    host: string,
+    port: number,
+    typeDefs?: string | DocumentNode | DocumentNode[] | string[],
+    resolvers?: IResolvers<any, any> | IResolvers<any, any>[],
+    context?: object | ContextFunction<ExpressContext, object>,
+    path = "/graphql",
+): Promise<ApolloServer> {
+    // Merge schema
+    const schema = mergeSchemas({
+        schemas: [],
+        typeDefs: typeDefs,
+        resolvers: resolvers,
+    });
+
+    return startApolloServerWithSchema(app, httpServer, host, port, schema, context, path);
 }
