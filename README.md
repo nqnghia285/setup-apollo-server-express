@@ -11,6 +11,7 @@
  * @param port number
  * @param schema GraphQLSchema
  * @param context object | ContextFunction<ExpressContext, object> | undefined
+ * @param handleResolver (args: GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }>) => void
  * @param path string
  * @returns Promise<ApolloServer>
  */
@@ -21,6 +22,7 @@ function startApolloServerWithSchema(
     port: number,
     schema: GraphQLSchema,
     context?: object | ContextFunction<ExpressContext, object>,
+    handleResolver?: (args: GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }>) => void,
     path?: string,
 ): Promise<ApolloServer>;
 ```
@@ -35,6 +37,7 @@ function startApolloServerWithSchema(
  * @param typeDefs string | DocumentNode | DocumentNode[] | string[] | undefined
  * @param resolvers IResolvers<any, any> | IResolvers<any, any>[] | undefined
  * @param context object | ContextFunction<ExpressContext, object> | undefined
+ * @param handleResolver (args: GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }>) => void
  * @param path string
  * @returns Promise<ApolloServer>
  */
@@ -46,6 +49,7 @@ function startApolloServer(
     typeDefs?: string | DocumentNode | DocumentNode[] | string[],
     resolvers?: IResolvers<any, any> | IResolvers<any, any>[],
     context?: object | ContextFunction<ExpressContext, object>,
+    handleResolver?: (args: GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }>) => void,
     path?: string,
 ): Promise<ApolloServer>;
 ```
@@ -64,6 +68,7 @@ import typeDefs from "./graphql/type_defs";
 import resolvers from "./graphql/resolvers";
 import { ExpressContext } from "apollo-server-express";
 import { mergeSchemas } from "graphql-tools";
+import { BaseContext, GraphQLFieldResolverParams } from "apollo-server-plugin-base";
 
 dotenv.config();
 
@@ -78,8 +83,12 @@ function handleReq({ req }: ExpressContext): { message?: string; models?: Models
     return { message: req.headers.cookie, models: models };
 }
 
+function handleResolver({ source, args, context, info }: GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }>) {
+    // TODO
+}
+
 // Start Apollo server
-startApolloServer(app, httpServer, HOST_NAME, PORT, typeDefs, resolvers, handleReq, GRAPHQL_PATH);
+startApolloServer(app, httpServer, HOST_NAME, PORT, typeDefs, resolvers, handleReq, handleResolver, GRAPHQL_PATH);
 
 // Or
 // Merge schema
@@ -89,5 +98,5 @@ const schema = mergeSchemas({
     resolvers: resolvers,
 });
 
-startApolloServerWithSchema(app, httpServer, HOST_NAME, PORT, schema, handleReq, GRAPHQL_PATH);
+startApolloServerWithSchema(app, httpServer, HOST_NAME, PORT, schema, handleReq, handleResolver, GRAPHQL_PATH);
 ```

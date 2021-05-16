@@ -1,6 +1,7 @@
 import { Express } from "express";
 import { Server } from "http";
 import { ApolloServer, ExpressContext, IResolvers } from "apollo-server-express";
+import { BaseContext, GraphQLFieldResolverParams } from "apollo-server-plugin-base";
 import { DocumentNode, GraphQLSchema } from "graphql";
 import { ContextFunction } from "apollo-server-core";
 
@@ -12,6 +13,7 @@ import { ContextFunction } from "apollo-server-core";
  * @param port number
  * @param schema GraphQLSchema
  * @param context object | ContextFunction<ExpressContext, object> | undefined
+ * @param handleResolver (args: GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }>) => void
  * @param path string
  * @returns Promise<ApolloServer>
  */
@@ -22,6 +24,7 @@ export declare function startApolloServerWithSchema(
     port: number,
     schema: GraphQLSchema,
     context?: object | ContextFunction<ExpressContext, object>,
+    handleResolver?: (args: GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }>) => void,
     path?: string,
 ): Promise<ApolloServer>;
 
@@ -34,6 +37,7 @@ export declare function startApolloServerWithSchema(
  * @param typeDefs string | DocumentNode | DocumentNode[] | string[] | undefined
  * @param resolvers IResolvers<any, any> | IResolvers<any, any>[] | undefined
  * @param context object | ContextFunction<ExpressContext, object> | undefined
+ * @param handleResolver (args: GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }>) => void
  * @param path string
  * @returns Promise<ApolloServer>
  */
@@ -45,5 +49,6 @@ export declare function startApolloServer(
     typeDefs?: string | DocumentNode | DocumentNode[] | string[],
     resolvers?: IResolvers<any, any> | IResolvers<any, any>[],
     context?: object | ContextFunction<ExpressContext, object>,
+    handleResolver?: (args: GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }>) => void,
     path?: string,
 ): Promise<ApolloServer>;
