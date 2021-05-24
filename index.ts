@@ -1,7 +1,7 @@
+import dotenv from "dotenv";
 import { ContextFunction } from "apollo-server-core";
 import { ApolloServer, ExpressContext, IResolvers } from "apollo-server-express";
 import { BaseContext, GraphQLFieldResolverParams } from "apollo-server-plugin-base";
-import dotenv from "dotenv";
 import { Express } from "express";
 import { DocumentNode, GraphQLSchema } from "graphql";
 import { mergeSchemas } from "graphql-tools";
@@ -37,6 +37,7 @@ export async function startApolloServerWithSchema(
         schema: schema,
         context: context,
         tracing: process.env.NODE_ENV === "development",
+        uploads: false,
         plugins: [
             {
                 requestDidStart(requestContext) {
