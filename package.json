@@ -18,7 +18,8 @@
     "homepage": "https://github.com/nqnghia285/setup-apollo-server-express.git#readme",
     "keywords": [
         "setup-apollo-server-express",
-        "startApolloServer"
+        "startApolloServer",
+        "startApolloServerWithSchema"
     ],
     "files": [
         "dist"
