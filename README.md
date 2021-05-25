@@ -12,6 +12,7 @@
  * @param schema GraphQLSchema
  * @param context object | ContextFunction<ExpressContext, object> | undefined
  * @param path string
+ * @param uploads boolean | FileUploadOptions | undefined
  * @returns Promise<ApolloServer>
  */
 function startApolloServerWithSchema(
@@ -22,6 +23,7 @@ function startApolloServerWithSchema(
     schema: GraphQLSchema,
     context?: object | ContextFunction<ExpressContext, object>,
     path?: string,
+    uploads?: boolean | FileUploadOptions,
 ): Promise<ApolloServer>;
 ```
 
@@ -36,6 +38,7 @@ function startApolloServerWithSchema(
  * @param resolvers IResolvers<any, any> | IResolvers<any, any>[] | undefined
  * @param context object | ContextFunction<ExpressContext, object> | undefined
  * @param path string
+ * @param uploads boolean | FileUploadOptions | undefined
  * @returns Promise<ApolloServer>
  */
 function startApolloServer(
@@ -47,6 +50,7 @@ function startApolloServer(
     resolvers?: IResolvers<any, any> | IResolvers<any, any>[],
     context?: object | ContextFunction<ExpressContext, object>,
     path?: string,
+    uploads?: boolean | FileUploadOptions,
 ): Promise<ApolloServer>;
 ```
 

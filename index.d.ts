@@ -2,7 +2,7 @@ import { Express } from "express";
 import { Server } from "http";
 import { ApolloServer, ExpressContext, IResolvers } from "apollo-server-express";
 import { DocumentNode, GraphQLSchema } from "graphql";
-import { ContextFunction } from "apollo-server-core";
+import { ContextFunction, FileUploadOptions } from "apollo-server-core";
 
 /**
  * @method startApolloServerWithSchema Start apollo server with apply middleware express
@@ -13,6 +13,7 @@ import { ContextFunction } from "apollo-server-core";
  * @param schema GraphQLSchema
  * @param context object | ContextFunction<ExpressContext, object> | undefined
  * @param path string
+ * @param uploads boolean | FileUploadOptions | undefined
  * @returns Promise<ApolloServer>
  */
 export declare function startApolloServerWithSchema(
@@ -23,6 +24,7 @@ export declare function startApolloServerWithSchema(
     schema: GraphQLSchema,
     context?: object | ContextFunction<ExpressContext, object>,
     path?: string,
+    uploads?: boolean | FileUploadOptions,
 ): Promise<ApolloServer>;
 
 /**
@@ -35,6 +37,7 @@ export declare function startApolloServerWithSchema(
  * @param resolvers IResolvers<any, any> | IResolvers<any, any>[] | undefined
  * @param context object | ContextFunction<ExpressContext, object> | undefined
  * @param path string
+ * @param uploads boolean | FileUploadOptions | undefined
  * @returns Promise<ApolloServer>
  */
 export declare function startApolloServer(
@@ -46,4 +49,5 @@ export declare function startApolloServer(
     resolvers?: IResolvers<any, any> | IResolvers<any, any>[],
     context?: object | ContextFunction<ExpressContext, object>,
     path?: string,
+    uploads?: boolean | FileUploadOptions,
 ): Promise<ApolloServer>;

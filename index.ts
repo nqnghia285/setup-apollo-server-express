@@ -1,11 +1,12 @@
+import dotenv from "dotenv";
+import { ContextFunction, FileUploadOptions } from "apollo-server-core";
+import { ApolloServer, ExpressContext, IResolvers } from "apollo-server-express";
+import { BaseContext, GraphQLFieldResolverParams } from "apollo-server-plugin-base";
 import { Express } from "express";
+import { DocumentNode, GraphQLSchema } from "graphql";
+import { mergeSchemas } from "graphql-tools";
 import { Server } from "http";
 import { address } from "ip";
-import { ApolloServer, ExpressContext, IResolvers } from "apollo-server-express";
-import { DocumentNode, GraphQLSchema } from "graphql";
-import { ContextFunction } from "apollo-server-core";
-import dotenv from "dotenv";
-import { mergeSchemas } from "graphql-tools";
 
 dotenv.config();
 
@@ -17,7 +18,9 @@ dotenv.config();
  * @param port number
  * @param schema GraphQLSchema
  * @param context object | ContextFunction<ExpressContext, object> | undefined
+ * @param handleResolver (args: GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }>) => void
  * @param path string
+ * @param uploads boolean | FileUploadOptions | undefined
  * @returns Promise<ApolloServer>
  */
 export async function startApolloServerWithSchema(
@@ -27,13 +30,33 @@ export async function startApolloServerWithSchema(
     port: number,
     schema: GraphQLSchema,
     context?: object | ContextFunction<ExpressContext, object>,
+    handleResolver?: (args: GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }>) => void,
     path = "/graphql",
+    uploads?: boolean | FileUploadOptions,
 ): Promise<ApolloServer> {
     // Init apollo server instance
     const apolloServer = new ApolloServer({
         schema: schema,
         context: context,
         tracing: process.env.NODE_ENV === "development",
+        uploads: uploads,
+        plugins: [
+            {
+                requestDidStart(requestContext) {
+                    return {
+                        executionDidStart(executionRequestContext) {
+                            return {
+                                willResolveField({ source, args, context, info }: GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }>) {
+                                    if (handleResolver !== undefined) {
+                                        handleResolver({ source, args, context, info });
+                                    }
+                                },
+                            };
+                        },
+                    };
+                },
+            },
+        ],
     });
 
     // Start apollo server
@@ -66,7 +89,9 @@ export async function startApolloServerWithSchema(
  * @param typeDefs string | DocumentNode | DocumentNode[] | string[] | undefined
  * @param resolvers IResolvers<any, any> | IResolvers<any, any>[] | undefined
  * @param context object | ContextFunction<ExpressContext, object> | undefined
+ * @param handleResolver (args: GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }>) => void
  * @param path string
+ * @param uploads boolean | FileUploadOptions | undefined
  * @returns Promise<ApolloServer>
  */
 export async function startApolloServer(
@@ -77,7 +102,9 @@ export async function startApolloServer(
     typeDefs?: string | DocumentNode | DocumentNode[] | string[],
     resolvers?: IResolvers<any, any> | IResolvers<any, any>[],
     context?: object | ContextFunction<ExpressContext, object>,
+    handleResolver?: (args: GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }>) => void,
     path = "/graphql",
+    uploads?: boolean | FileUploadOptions,
 ): Promise<ApolloServer> {
     // Merge schema
     const schema = mergeSchemas({
@@ -86,5 +113,5 @@ export async function startApolloServer(
         resolvers: resolvers,
     });
 
-    return startApolloServerWithSchema(app, httpServer, host, port, schema, context, path);
+    return startApolloServerWithSchema(app, httpServer, host, port, schema, context, handleResolver, path, uploads);
 }
