@@ -14,6 +14,7 @@
  * @param handleResolver (args: GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }>) => void
  * @param path string
  * @param uploads boolean | FileUploadOptions | undefined
+ * @param modules GraphQLSchemaModule[] | undefined
  * @returns Promise<ApolloServer>
  */
 function startApolloServerWithSchema(
@@ -26,6 +27,7 @@ function startApolloServerWithSchema(
     handleResolver?: (args: GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }>) => void,
     path?: string,
     uploads?: boolean | FileUploadOptions,
+    modules?: GraphQLSchemaModule[],
 ): Promise<ApolloServer>;
 ```
 
@@ -36,12 +38,13 @@ function startApolloServerWithSchema(
  * @param httpServer Server
  * @param host string
  * @param port number
- * @param typeDefs string | DocumentNode | DocumentNode[] | string[]
+ * @param typeDefs string | DocumentNode | DocumentNode[] | string[] | undefined
  * @param resolvers IResolvers<any, any> | IResolvers<any, any>[] | undefined
  * @param context object | ContextFunction<ExpressContext, object> | undefined
  * @param handleResolver (args: GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }>) => void
  * @param path string
  * @param uploads boolean | FileUploadOptions | undefined
+ * @param modules GraphQLSchemaModule[] | undefined
  * @returns Promise<ApolloServer>
  */
 function startApolloServer(
@@ -55,6 +58,7 @@ function startApolloServer(
     handleResolver?: (args: GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }>) => void,
     path?: string,
     uploads?: boolean | FileUploadOptions,
+    modules?: GraphQLSchemaModule[],
 ): Promise<ApolloServer>;
 ```
 
@@ -70,9 +74,11 @@ import models from "./database/models";
 import { startApolloServer } from "setup-apollo-server-express";
 import typeDefs from "./graphql/type_defs";
 import resolvers from "./graphql/resolvers";
-import { ExpressContext } from "apollo-server-express";
+import { gql, ExpressContext } from "apollo-server-express";
 import { makeExecutableSchema } from "@graphql-tools/chema";
 import { BaseContext, GraphQLFieldResolverParams } from "apollo-server-plugin-base";
+import { GraphQLModule } from "@graphql-modules/core";
+import { GraphQLUpload } from "graphql-upload";
 
 dotenv.config();
 
@@ -91,8 +97,22 @@ function handleResolver({ source, args, context, info }: GraphQLFieldResolverPar
     // TODO
 }
 
+const UploadOptions = {
+    maxFileSize: 10000000, // 10 MB
+    maxFiles: 20,
+};
+
+const UploadModule = new GraphQLModule({
+    typeDefs: gql`
+        scalar Upload
+    `,
+    resolvers: {
+        Upload: GraphQLUpload,
+    },
+});
+
 // Start Apollo server
-startApolloServer(app, httpServer, HOST_NAME, PORT, typeDefs, resolvers, handleReq, handleResolver, GRAPHQL_PATH);
+startApolloServer(app, httpServer, HOST_NAME, PORT, typeDefs, resolvers, handleReq, handleResolver, GRAPHQL_PATH, UploadOptions, UploadModule);
 
 // Or
 // Merge schema
@@ -101,5 +121,5 @@ const schema = makeExecutableSchema({
     resolvers: resolvers,
 });
 
-startApolloServerWithSchema(app, httpServer, HOST_NAME, PORT, schema, handleReq, handleResolver, GRAPHQL_PATH);
+startApolloServerWithSchema(app, httpServer, HOST_NAME, PORT, schema, handleReq, handleResolver, GRAPHQL_PATH, UploadOptions, UploadModule);
 ```
