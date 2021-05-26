@@ -36,7 +36,7 @@ function startApolloServerWithSchema(
  * @param httpServer Server
  * @param host string
  * @param port number
- * @param typeDefs string | DocumentNode | DocumentNode[] | string[] | undefined
+ * @param typeDefs string | DocumentNode | DocumentNode[] | string[]
  * @param resolvers IResolvers<any, any> | IResolvers<any, any>[] | undefined
  * @param context object | ContextFunction<ExpressContext, object> | undefined
  * @param handleResolver (args: GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }>) => void
@@ -49,7 +49,7 @@ function startApolloServer(
     httpServer: Server,
     host: string,
     port: number,
-    typeDefs?: string | DocumentNode | DocumentNode[] | string[],
+    typeDefs: string | DocumentNode | DocumentNode[] | string[],
     resolvers?: IResolvers<any, any> | IResolvers<any, any>[],
     context?: object | ContextFunction<ExpressContext, object>,
     handleResolver?: (args: GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }>) => void,
@@ -71,7 +71,7 @@ import { startApolloServer } from "setup-apollo-server-express";
 import typeDefs from "./graphql/type_defs";
 import resolvers from "./graphql/resolvers";
 import { ExpressContext } from "apollo-server-express";
-import { mergeSchemas } from "graphql-tools";
+import { makeExecutableSchema } from "@graphql-tools/chema";
 import { BaseContext, GraphQLFieldResolverParams } from "apollo-server-plugin-base";
 
 dotenv.config();
@@ -96,8 +96,7 @@ startApolloServer(app, httpServer, HOST_NAME, PORT, typeDefs, resolvers, handleR
 
 // Or
 // Merge schema
-const schema = mergeSchemas({
-    schemas: [],
+const schema = makeExecutableSchema({
     typeDefs: typeDefs,
     resolvers: resolvers,
 });

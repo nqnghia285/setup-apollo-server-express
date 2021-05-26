@@ -4,7 +4,7 @@ import { ApolloServer, ExpressContext, IResolvers } from "apollo-server-express"
 import { BaseContext, GraphQLFieldResolverParams } from "apollo-server-plugin-base";
 import { Express } from "express";
 import { DocumentNode, GraphQLSchema } from "graphql";
-import { mergeSchemas } from "graphql-tools";
+import { makeExecutableSchema } from "@graphql-tools/schema";
 import { Server } from "http";
 import { address } from "ip";
 
@@ -99,7 +99,7 @@ export async function startApolloServer(
     httpServer: Server,
     host: string,
     port: number,
-    typeDefs?: string | DocumentNode | DocumentNode[] | string[],
+    typeDefs: string | DocumentNode | DocumentNode[] | string[],
     resolvers?: IResolvers<any, any> | IResolvers<any, any>[],
     context?: object | ContextFunction<ExpressContext, object>,
     handleResolver?: (args: GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }>) => void,
@@ -107,8 +107,7 @@ export async function startApolloServer(
     uploads?: boolean | FileUploadOptions,
 ): Promise<ApolloServer> {
     // Merge schema
-    const schema = mergeSchemas({
-        schemas: [],
+    const schema = makeExecutableSchema({
         typeDefs: typeDefs,
         resolvers: resolvers,
     });

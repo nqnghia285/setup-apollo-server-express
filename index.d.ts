@@ -49,7 +49,7 @@ export declare function startApolloServer(
     httpServer: Server,
     host: string,
     port: number,
-    typeDefs?: string | DocumentNode | DocumentNode[] | string[],
+    typeDefs: string | DocumentNode | DocumentNode[] | string[],
     resolvers?: IResolvers<any, any> | IResolvers<any, any>[],
     context?: object | ContextFunction<ExpressContext, object>,
     handleResolver?: (args: GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }>) => void,
