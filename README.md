@@ -14,7 +14,7 @@
  * @param handleResolver (args: GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }>) => void
  * @param path string
  * @param uploads boolean | FileUploadOptions | undefined
- * @param modules GraphQLSchemaModule[] | undefined
+ * @param module GraphQLSchemaModule | undefined
  * @returns Promise<ApolloServer>
  */
 function startApolloServerWithSchema(
@@ -27,7 +27,7 @@ function startApolloServerWithSchema(
     handleResolver?: (args: GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }>) => void,
     path?: string,
     uploads?: boolean | FileUploadOptions,
-    modules?: GraphQLSchemaModule[],
+    module?: GraphQLSchemaModule,
 ): Promise<ApolloServer>;
 ```
 
@@ -44,7 +44,7 @@ function startApolloServerWithSchema(
  * @param handleResolver (args: GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }>) => void
  * @param path string
  * @param uploads boolean | FileUploadOptions | undefined
- * @param modules GraphQLSchemaModule[] | undefined
+ * @param module GraphQLSchemaModule | undefined
  * @returns Promise<ApolloServer>
  */
 function startApolloServer(
@@ -58,7 +58,7 @@ function startApolloServer(
     handleResolver?: (args: GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }>) => void,
     path?: string,
     uploads?: boolean | FileUploadOptions,
-    modules?: GraphQLSchemaModule[],
+    module?: GraphQLSchemaModule,
 ): Promise<ApolloServer>;
 ```
 
