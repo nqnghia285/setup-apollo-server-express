@@ -38,24 +38,13 @@ export async function startApolloServerWithSchema(
     uploads?: boolean | FileUploadOptions,
     module?: GraphQLSchemaModule,
 ): Promise<ApolloServer> {
-    if (!module) {
-        module = new GraphQLModule({
-            typeDefs: gql`
-                scalar Upload
-            `,
-            resolvers: {
-                Upload: GraphQLUpload,
-            },
-        });
-    }
-
     // Init apollo server instance
     const apolloServer = new ApolloServer({
         schema: schema,
         context: context,
         tracing: process.env.NODE_ENV === "development",
         uploads: uploads,
-        modules: [module],
+        modules: module ? [module] : module,
         plugins: [
             {
                 requestDidStart(requestContext) {
