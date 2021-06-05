@@ -1,123 +1,82 @@
-import dotenv from "dotenv";
-import { ContextFunction, FileUploadOptions, GraphQLSchemaModule } from "apollo-server-core";
-import { ApolloServer, ExpressContext, gql, IResolvers } from "apollo-server-express";
+import { ContextFunction } from "apollo-server-core";
+import { ApolloServer, ApolloServerExpressConfig, ExpressContext } from "apollo-server-express";
 import { BaseContext, GraphQLFieldResolverParams } from "apollo-server-plugin-base";
+import dotenv from "dotenv";
 import { Express } from "express";
-import { DocumentNode, GraphQLSchema } from "graphql";
-import { makeExecutableSchema } from "@graphql-tools/schema";
+import { GraphQLSchema } from "graphql";
 import { Server } from "http";
 import { address } from "ip";
-import { GraphQLUpload } from "graphql-upload";
-import { GraphQLModule } from "@graphql-modules/core";
 
 dotenv.config();
 
+export interface ResolverParams extends GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }> {}
+
+export interface ContextParams extends Object, ContextFunction<ExpressContext, object> {}
+
 /**
- * @method startApolloServerWithSchema Start apollo server with apply middleware express
- * @param app Express
- * @param httpServer Server
- * @param host string
- * @param port number
+ * @method createDefaultConfig
  * @param schema GraphQLSchema
- * @param context object | ContextFunction<ExpressContext, object> | undefined
- * @param handleResolver (args: GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }>) => void
- * @param path string
- * @param uploads boolean | FileUploadOptions | undefined
- * @param module GraphQLSchemaModule | undefined
- * @returns Promise<ApolloServer>
+ * @param context ContextParams
+ * @param handleResolver (args: ResolverParams) => void
+ * @returns ApolloServerExpressConfig
  */
-export async function startApolloServerWithSchema(
-    app: Express,
-    httpServer: Server,
-    host: string,
-    port: number,
-    schema: GraphQLSchema,
-    context?: object | ContextFunction<ExpressContext, object>,
-    handleResolver?: (args: GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }>) => void,
-    path = "/graphql",
-    uploads?: boolean | FileUploadOptions,
-    module?: GraphQLSchemaModule,
-): Promise<ApolloServer> {
-    // Init apollo server instance
-    const apolloServer = new ApolloServer({
-        schema: schema,
-        context: context,
-        tracing: process.env.NODE_ENV === "development",
-        uploads: uploads,
-        modules: module ? [module] : module,
-        plugins: [
-            {
-                requestDidStart(requestContext) {
-                    return {
-                        executionDidStart(executionRequestContext) {
-                            return {
-                                willResolveField({ source, args, context, info }: GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }>) {
-                                    if (handleResolver !== undefined) {
-                                        handleResolver({ source, args, context, info });
-                                    }
-                                },
-                            };
-                        },
-                    };
-                },
-            },
-        ],
-    });
+export function createDefaultConfig(schema: GraphQLSchema, context: ContextParams, handleResolver: (args: ResolverParams) => void): ApolloServerExpressConfig {
+	const config: ApolloServerExpressConfig = {};
 
-    // Start apollo server
-    await apolloServer.start();
+	config.schema = schema;
+	config.context = context;
+	config.uploads = false;
+	config.tracing = process.env.NODE_ENV !== "production";
+	config.plugins = [
+		{
+			requestDidStart(requestContext) {
+				return {
+					executionDidStart(executionRequestContext) {
+						return {
+							willResolveField(fieldResolverParams: ResolverParams) {
+								handleResolver(fieldResolverParams);
+							},
+						};
+					},
+				};
+			},
+		},
+	];
 
-    // Apply middleware
-    apolloServer.applyMiddleware({ app: app, path: path });
-
-    await new Promise(() => {
-        // Server is listening clients
-        httpServer.listen({ host: host, port: port }, () => {
-            let announcement = {
-                server: httpServer.address(),
-                address: address(),
-                message: "GraphQL Server is running!",
-            };
-            console.log(announcement);
-        });
-    });
-
-    return apolloServer;
+	return config;
 }
 
 /**
  * @method startApolloServer Start apollo server with apply middleware express
+ * @param config ApolloServerExpressConfig
  * @param app Express
  * @param httpServer Server
  * @param host string
  * @param port number
- * @param typeDefs string | DocumentNode | DocumentNode[] | string[] | undefined
- * @param resolvers IResolvers<any, any> | IResolvers<any, any>[] | undefined
- * @param context object | ContextFunction<ExpressContext, object> | undefined
- * @param handleResolver (args: GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }>) => void
  * @param path string
- * @param uploads boolean | FileUploadOptions | undefined
- * @param module GraphQLSchemaModule | undefined
  * @returns Promise<ApolloServer>
  */
-export async function startApolloServer(
-    app: Express,
-    httpServer: Server,
-    host: string,
-    port: number,
-    typeDefs: string | DocumentNode | DocumentNode[] | string[],
-    resolvers?: IResolvers<any, any> | IResolvers<any, any>[],
-    context?: object | ContextFunction<ExpressContext, object>,
-    handleResolver?: (args: GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }>) => void,
-    path = "/graphql",
-    uploads?: boolean | FileUploadOptions,
-    module?: GraphQLSchemaModule,
-): Promise<ApolloServer> {
-    // Merge schema
-    const schema = makeExecutableSchema({
-        typeDefs: typeDefs,
-        resolvers: resolvers,
-    });
+export async function startApolloServer(config: ApolloServerExpressConfig, app: Express, httpServer: Server, host = "0.0.0.0", port = 5000, path = "/graphql"): Promise<ApolloServer> {
+	// Init apollo server instance
+	const apolloServer = new ApolloServer(config);
 
-    return startApolloServerWithSchema(app, httpServer, host, port, schema, context, handleResolver, path, uploads, module);
+	// Start apollo server
+	await apolloServer.start();
+
+	// Apply middleware
+	apolloServer.applyMiddleware({ app: app, path: path });
+
+	await new Promise(() => {
+		// Server is listening clients
+		httpServer.listen({ host: host, port: port }, () => {
+			let announcement = {
+				server: httpServer.address(),
+				address: address(),
+				message: "GraphQL Server is running!",
+			};
+			console.log(announcement);
+		});
+	});
+
+	return apolloServer;
 }

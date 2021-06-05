@@ -1,62 +1,31 @@
-import { Express } from "express";
-import { Server } from "http";
-import { ApolloServer, ExpressContext, IResolvers } from "apollo-server-express";
+import { ContextFunction } from "apollo-server-core";
+import { ApolloServer, ApolloServerExpressConfig, ExpressContext } from "apollo-server-express";
 import { BaseContext, GraphQLFieldResolverParams } from "apollo-server-plugin-base";
-import { DocumentNode, GraphQLSchema } from "graphql";
-import { ContextFunction, FileUploadOptions, GraphQLSchemaModule } from "apollo-server-core";
+import { Express } from "express";
+import { GraphQLSchema } from "graphql";
+import { Server } from "http";
+
+export declare interface ResolverParams extends GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }> {}
+
+export declare interface ContextParams extends Object, ContextFunction<ExpressContext, object> {}
 
 /**
- * @method startApolloServerWithSchema Start apollo server with apply middleware express
- * @param app Express
- * @param httpServer Server
- * @param host string
- * @param port number
+ * @method createDefaultConfig
  * @param schema GraphQLSchema
- * @param context object | ContextFunction<ExpressContext, object> | undefined
- * @param handleResolver (args: GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }>) => void
- * @param path string
- * @param uploads boolean | FileUploadOptions | undefined
- * @param module GraphQLSchemaModule | undefined
- * @returns Promise<ApolloServer>
+ * @param context ContextParams
+ * @param handleResolver (args: ResolverParams) => void
+ * @returns ApolloServerExpressConfig
  */
-export declare function startApolloServerWithSchema(
-    app: Express,
-    httpServer: Server,
-    host: string,
-    port: number,
-    schema: GraphQLSchema,
-    context?: object | ContextFunction<ExpressContext, object>,
-    handleResolver?: (args: GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }>) => void,
-    path?: string,
-    uploads?: boolean | FileUploadOptions,
-    module?: GraphQLSchemaModule,
-): Promise<ApolloServer>;
+export declare function createDefaultConfig(schema: GraphQLSchema, context: ContextParams, handleResolver: (args: ResolverParams) => void): ApolloServerExpressConfig;
 
 /**
  * @method startApolloServer Start apollo server with apply middleware express
+ * @param config ApolloServerExpressConfig
  * @param app Express
  * @param httpServer Server
  * @param host string
  * @param port number
- * @param typeDefs string | DocumentNode | DocumentNode[] | string[] | undefined
- * @param resolvers IResolvers<any, any> | IResolvers<any, any>[] | undefined
- * @param context object | ContextFunction<ExpressContext, object> | undefined
- * @param handleResolver (args: GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }>) => void
  * @param path string
- * @param uploads boolean | FileUploadOptions | undefined
- * @param module GraphQLSchemaModule | undefined
  * @returns Promise<ApolloServer>
  */
-export declare function startApolloServer(
-    app: Express,
-    httpServer: Server,
-    host: string,
-    port: number,
-    typeDefs: string | DocumentNode | DocumentNode[] | string[],
-    resolvers?: IResolvers<any, any> | IResolvers<any, any>[],
-    context?: object | ContextFunction<ExpressContext, object>,
-    handleResolver?: (args: GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }>) => void,
-    path?: string,
-    uploads?: boolean | FileUploadOptions,
-    module?: GraphQLSchemaModule,
-): Promise<ApolloServer>;
+export declare function startApolloServer(config: ApolloServerExpressConfig, app: Express, httpServer: Server, host: string, port: number, path: string): Promise<ApolloServer>;
