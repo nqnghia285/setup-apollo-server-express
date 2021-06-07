@@ -4,19 +4,25 @@ import { BaseContext, GraphQLFieldResolverParams } from "apollo-server-plugin-ba
 import { Express } from "express";
 import { GraphQLSchema } from "graphql";
 import { Server } from "http";
+import { GraphQLResponse, GraphQLRequestContext } from "apollo-server-types";
 
 export declare interface ResolverParams extends GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }> {}
 
 export declare interface ContextParams extends Object, ContextFunction<ExpressContext, object> {}
 
+export declare interface ConfigOptions {
+	schema: GraphQLSchema;
+	context: ContextParams;
+	handleResolver: (args: ResolverParams) => void;
+	formatResponse: (response: GraphQLResponse, requestContext: GraphQLRequestContext<object>) => GraphQLResponse | null;
+}
+
 /**
  * @method createDefaultConfig
- * @param schema GraphQLSchema
- * @param context ContextParams
- * @param handleResolver (args: ResolverParams) => void
+ * @param configOptions ConfigOptions
  * @returns ApolloServerExpressConfig
  */
-export declare function createDefaultConfig(schema: GraphQLSchema, context: ContextParams, handleResolver: (args: ResolverParams) => void): ApolloServerExpressConfig;
+export declare function createDefaultConfig(configOptions: ConfigOptions): ApolloServerExpressConfig;
 
 /**
  * @method startApolloServer Start apollo server with apply middleware express

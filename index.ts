@@ -1,4 +1,5 @@
 import { ContextFunction } from "apollo-server-core";
+import { GraphQLResponse, GraphQLRequestContext } from "apollo-server-types";
 import { ApolloServer, ApolloServerExpressConfig, ExpressContext } from "apollo-server-express";
 import { BaseContext, GraphQLFieldResolverParams } from "apollo-server-plugin-base";
 import dotenv from "dotenv";
@@ -13,20 +14,26 @@ export interface ResolverParams extends GraphQLFieldResolverParams<any, BaseCont
 
 export interface ContextParams extends Object, ContextFunction<ExpressContext, object> {}
 
+export interface ConfigOptions {
+	schema: GraphQLSchema;
+	context: ContextParams;
+	handleResolver: (args: ResolverParams) => void;
+	formatResponse: (response: GraphQLResponse, requestContext: GraphQLRequestContext<object>) => GraphQLResponse | null;
+}
+
 /**
  * @method createDefaultConfig
- * @param schema GraphQLSchema
- * @param context ContextParams
- * @param handleResolver (args: ResolverParams) => void
+ * @param configOptions ConfigOptions
  * @returns ApolloServerExpressConfig
  */
-export function createDefaultConfig(schema: GraphQLSchema, context: ContextParams, handleResolver: (args: ResolverParams) => void): ApolloServerExpressConfig {
+export function createDefaultConfig(configOptions: ConfigOptions): ApolloServerExpressConfig {
 	const config: ApolloServerExpressConfig = {};
 
-	config.schema = schema;
-	config.context = context;
+	config.schema = configOptions.schema;
+	config.context = configOptions.context;
 	config.uploads = false;
 	config.tracing = process.env.NODE_ENV !== "production";
+	config.formatResponse = configOptions.formatResponse;
 	config.plugins = [
 		{
 			requestDidStart(requestContext) {
@@ -34,7 +41,7 @@ export function createDefaultConfig(schema: GraphQLSchema, context: ContextParam
 					executionDidStart(executionRequestContext) {
 						return {
 							willResolveField(fieldResolverParams: ResolverParams) {
-								handleResolver(fieldResolverParams);
+								configOptions.handleResolver(fieldResolverParams);
 							},
 						};
 					},

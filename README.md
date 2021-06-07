@@ -5,12 +5,10 @@
 ```typescript
 /**
  * @method createDefaultConfig
- * @param schema GraphQLSchema
- * @param context ContextParams
- * @param handleResolver (args: ResolverParams) => void
+ * @param configOptions ConfigOptions
  * @returns ApolloServerExpressConfig
  */
-function createDefaultConfig(schema: GraphQLSchema, context: ContextParams, handleResolver: (args: ResolverParams) => void): ApolloServerExpressConfig;
+function createDefaultConfig(configOptions: ConfigOptions): ApolloServerExpressConfig;
 ```
 
 ```typescript
@@ -40,6 +38,7 @@ import { startApolloServer, ResolverParams, ContextParams } from "setup-apollo-s
 import typeDefs from "./graphql/type_defs";
 import resolvers from "./graphql/resolvers";
 import { makeExecutableSchema } from "@graphql-tools/chema";
+import { ApolloServerExpressConfig, ExpressContext } from "apollo-server-express";
 
 dotenv.config();
 
@@ -50,7 +49,7 @@ const httpServer = createServer(app);
 app.use(cors...)
 
 // Handle req before passed to resolver functions
-function handleReq({ req }: ContextParams): { message?: string; models?: Models } {
+function handleReq({ req }: ExpressContext): { message?: string; models?: Models } {
 	return { message: req.headers.cookie, models: models };
 }
 
@@ -59,6 +58,15 @@ function handleResolver({ source, args, context, info }: ResolverParams) {
 	// TODO
 }
 
+// Format response
+function formatResponse(response: GraphQLResponse, requestContext: GraphQLRequestContext<object>): GraphQLResponse | null {
+		if (response.data?.getAllOfUsers !== undefined) {
+			response.data.users = response.data.getAllOfUsers;
+			delete response.data.getAllOfUsers;
+		}
+		return response;
+	}
+
 // Merge schema
 const schema = makeExecutableSchema({
 	typeDefs: typeDefs,
@@ -66,7 +74,39 @@ const schema = makeExecutableSchema({
 });
 
 // Create config
-const config = createDefaultConfig(schema, handleReq, handleResolver);
+const configOptions: ConfigOptions = {
+   schema: schema,
+   context: handleReq,
+   handleResolver: handleResolver,
+   formatResponse: formatResponse,
+}
+
+const config = createDefaultConfig(configOptions);
+
+// Or declare config as follow:
+const config: ApolloServerExpressConfig = {
+   schema: schema,
+	context: handleReq,
+	uploads: false,
+	tracing: process.env.NODE_ENV !== "production",
+	formatResponse: formatResponse,
+	plugins: [
+		{
+			requestDidStart(requestContext) {
+				return {
+					executionDidStart(executionRequestContext) {
+						return {
+							willResolveField(fieldResolverParams: ResolverParams) {
+								handleResolver(fieldResolverParams);
+							},
+						};
+					},
+				};
+			},
+		},
+	],
+   ...
+}
 
 // Start Apollo server
 const apolloServer = startApolloServer(config, app, httpServer); // Default values: host = "0.0.0.0", port = 5000, path = "/graphql"
