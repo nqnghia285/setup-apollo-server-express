@@ -1,9 +1,7 @@
-import { mergeResolvers } from "@graphql-tools/merge";
-import { loadFilesSync } from "graphql-tools";
-import path from "path";
+import { GraphQLUpload } from "graphql-upload";
 
-const scalarTypeArray = loadFilesSync(path.join(__dirname, "./scalar_types"));
-
-const resolvers = mergeResolvers(scalarTypeArray);
+const resolvers = {
+	Upload: GraphQLUpload,
+};
 
 export default resolvers;

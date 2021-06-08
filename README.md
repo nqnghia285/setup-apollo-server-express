@@ -62,8 +62,8 @@ function handleResolver({ source, args, context, info }: ResolverParams) {
 // Format response
 function formatResponse(response: GraphQLResponse, requestContext: GraphQLRequestContext<object>): GraphQLResponse | null {
 		if (response.data?.getAllOfUsers !== undefined) {
-			response.data.users = response.data.getAllOfUsers;
-			delete response.data.getAllOfUsers;
+			response.data.users = response.data.getAllOfUsers; // Add users attribute into data object
+			delete response.data.getAllOfUsers; // Delete getAllOfUsers attribute in data object
 		}
 		return response;
 	}

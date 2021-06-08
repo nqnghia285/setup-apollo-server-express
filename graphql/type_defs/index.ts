@@ -1,9 +1,8 @@
-import { loadFilesSync } from "@graphql-tools/load-files";
-import { mergeTypeDefs } from "@graphql-tools/merge";
-import path from "path";
+import { gql } from "apollo-server-express";
 
-const scalarTypes = loadFilesSync(path.join(__dirname, "./scalar_types"));
-
-const typeDefs = mergeTypeDefs(scalarTypes);
+const typeDefs = gql`
+	######## Scalar Type ########
+	scalar Upload
+`;
 
 export default typeDefs;
