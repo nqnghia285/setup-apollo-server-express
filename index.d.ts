@@ -5,6 +5,7 @@ import { Express } from "express";
 import { GraphQLSchema } from "graphql";
 import { Server } from "http";
 import { GraphQLResponse, GraphQLRequestContext } from "apollo-server-types";
+import { UploadOptions } from "graphql-upload";
 
 export declare interface ResolverParams extends GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }> {}
 
@@ -32,6 +33,15 @@ export declare function createDefaultConfig(configOptions: ConfigOptions): Apoll
  * @param host string
  * @param port number
  * @param path string
+ * @param uploadOptions UploadOptions | undefined
  * @returns Promise<ApolloServer>
  */
-export declare function startApolloServer(config: ApolloServerExpressConfig, app: Express, httpServer: Server, host: string, port: number, path: string): Promise<ApolloServer>;
+export declare function startApolloServer(
+	config: ApolloServerExpressConfig,
+	app: Express,
+	httpServer: Server,
+	host?: string,
+	port?: number,
+	path?: string,
+	uploadOptions?: UploadOptions,
+): Promise<ApolloServer>;

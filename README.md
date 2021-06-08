@@ -20,9 +20,10 @@ function createDefaultConfig(configOptions: ConfigOptions): ApolloServerExpressC
  * @param host string
  * @param port number
  * @param path string
+ * @param uploadOptions UploadOptions | undefined
  * @returns Promise<ApolloServer>
  */
-function startApolloServer(config: ApolloServerExpressConfig, app: Express, httpServer: Server, host: string, port: number, path: string): Promise<ApolloServer>;
+function startApolloServer(config: ApolloServerExpressConfig, app: Express, httpServer: Server, host?: string, port?: number, path?: string, uploadOptions?: UploadOptions): Promise<ApolloServer>;
 ```
 
 ### Example:
@@ -109,5 +110,5 @@ const config: ApolloServerExpressConfig = {
 }
 
 // Start Apollo server
-const apolloServer = startApolloServer(config, app, httpServer); // Default values: host = "0.0.0.0", port = 5000, path = "/graphql"
+const apolloServer = startApolloServer(config, app, httpServer); // Default values: host = "0.0.0.0", port = 5000, path = "/graphql". Default added middleware graphqlUploadExpress with scalar Upload in schema
 ```

@@ -7,6 +7,9 @@ import { Express } from "express";
 import { GraphQLSchema } from "graphql";
 import { Server } from "http";
 import { address } from "ip";
+import { graphqlUploadExpress, UploadOptions } from "graphql-upload";
+import { mergeSchemas } from "graphql-tools";
+import rootSchema from "./graphql";
 
 dotenv.config();
 
@@ -61,14 +64,29 @@ export function createDefaultConfig(configOptions: ConfigOptions): ApolloServerE
  * @param host string
  * @param port number
  * @param path string
+ * @param uploadOptions UploadOptions | undefined
  * @returns Promise<ApolloServer>
  */
-export async function startApolloServer(config: ApolloServerExpressConfig, app: Express, httpServer: Server, host = "0.0.0.0", port = 5000, path = "/graphql"): Promise<ApolloServer> {
+export async function startApolloServer(
+	config: ApolloServerExpressConfig,
+	app: Express,
+	httpServer: Server,
+	host = "0.0.0.0",
+	port = 5000,
+	path = "/graphql",
+	uploadOptions?: UploadOptions,
+): Promise<ApolloServer> {
 	// Init apollo server instance
+	if (config.schema) {
+		config.schema = mergeSchemas({ schemas: [rootSchema, config.schema] });
+	}
 	const apolloServer = new ApolloServer(config);
 
 	// Start apollo server
 	await apolloServer.start();
+
+	// Setup middleware upload file
+	app.use(path, graphqlUploadExpress(uploadOptions));
 
 	// Apply middleware
 	apolloServer.applyMiddleware({ app: app, path: path });
