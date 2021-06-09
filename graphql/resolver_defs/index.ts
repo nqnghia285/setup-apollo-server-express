@@ -1,6 +1,6 @@
 import { GraphQLUpload } from "graphql-upload";
 
-const resolvers = {
+const resolvers: any = {
 	Upload: GraphQLUpload,
 };
 

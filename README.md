@@ -6,15 +6,15 @@
 /**
  * @method createDefaultConfig
  * @param configOptions ConfigOptions
- * @returns ApolloServerExpressConfig
+ * @returns ApolloConfig
  */
-function createDefaultConfig(configOptions: ConfigOptions): ApolloServerExpressConfig;
+function createDefaultConfig(configOptions: ConfigOptions): ApolloConfig;
 ```
 
 ```typescript
 /**
  * @method startApolloServer Start apollo server with apply middleware express
- * @param config ApolloServerExpressConfig
+ * @param config ApolloConfig
  * @param app Express
  * @param httpServer Server
  * @param host string
@@ -23,7 +23,7 @@ function createDefaultConfig(configOptions: ConfigOptions): ApolloServerExpressC
  * @param uploadOptions UploadOptions | undefined
  * @returns Promise<ApolloServer>
  */
-function startApolloServer(config: ApolloServerExpressConfig, app: Express, httpServer: Server, host?: string, port?: number, path?: string, uploadOptions?: UploadOptions): Promise<ApolloServer>;
+function startApolloServer(config: ApolloConfig, app: Express, httpServer: Server, host?: string, port?: number, path?: string, uploadOptions?: UploadOptions): Promise<ApolloServer>;
 ```
 
 ### Example:
@@ -35,11 +35,11 @@ import { createServer } from "http";
 import express from "express";
 import { Models } from "./interface";
 import models from "./database/models";
-import { startApolloServer, ResolverParams, ContextParams } from "setup-apollo-server-express";
+import { startApolloServer, ResolverParams, ContextParams, ApolloConfig } from "setup-apollo-server-express";
 import typeDefs from "./graphql/type_defs";
 import resolvers from "./graphql/resolvers";
 import { makeExecutableSchema } from "@graphql-tools/chema";
-import { ApolloServerExpressConfig, ExpressContext } from "apollo-server-express";
+import { ExpressContext } from "apollo-server-express";
 
 dotenv.config();
 
@@ -68,15 +68,10 @@ function formatResponse(response: GraphQLResponse, requestContext: GraphQLReques
 		return response;
 	}
 
-// Merge schema
-const schema = makeExecutableSchema({
-	typeDefs: typeDefs,
-	resolvers: resolvers,
-});
-
 // Create config
 const configOptions: ConfigOptions = {
-   schema: schema,
+   typeDefs: typeDefs,
+   resolvers: resolvers,
    context: handleReq,
    handleResolver: handleResolver,
    formatResponse: formatResponse,
@@ -85,8 +80,9 @@ const configOptions: ConfigOptions = {
 const config = createDefaultConfig(configOptions);
 
 // Or declare config as follow:
-const config: ApolloServerExpressConfig = {
-   schema: schema,
+const config: ApolloConfig = {
+   typeDefs: typeDefs,
+   resolvers: resolvers,
 	context: handleReq,
 	uploads: false,
 	tracing: process.env.NODE_ENV !== "production",

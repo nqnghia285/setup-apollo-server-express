@@ -1,7 +1,7 @@
-import { gql } from "apollo-server-express";
+import { DocumentNode } from "graphql";
+import gql from "graphql-tag";
 
 const typeDefs = gql`
-	######## Scalar Type ########
 	scalar Upload
 `;
 

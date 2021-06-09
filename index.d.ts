@@ -1,18 +1,27 @@
 import { ContextFunction } from "apollo-server-core";
-import { ApolloServer, ApolloServerExpressConfig, ExpressContext } from "apollo-server-express";
+import { ApolloServer, ApolloServerExpressConfig, ExpressContext, IEnumResolver, IResolverObject, IResolverOptions } from "apollo-server-express";
 import { BaseContext, GraphQLFieldResolverParams } from "apollo-server-plugin-base";
+import { GraphQLRequestContext, GraphQLResponse } from "apollo-server-types";
 import { Express } from "express";
-import { GraphQLSchema } from "graphql";
-import { Server } from "http";
-import { GraphQLResponse, GraphQLRequestContext } from "apollo-server-types";
+import { DocumentNode, GraphQLScalarType } from "graphql";
 import { UploadOptions } from "graphql-upload";
+import { Server } from "http";
 
 export declare interface ResolverParams extends GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }> {}
 
 export declare interface ContextParams extends Object, ContextFunction<ExpressContext, object> {}
 
+export declare interface IResolvers<TSource = any, TContext = any> {
+	[key: string]: (() => any) | IResolverObject<TSource, TContext> | IResolverOptions<TSource, TContext> | GraphQLScalarType | IEnumResolver;
+}
+
+export declare interface ApolloConfig extends ApolloServerExpressConfig {
+	typeDefs?: DocumentNode | DocumentNode[];
+}
+
 export declare interface ConfigOptions {
-	schema: GraphQLSchema;
+	typeDefs: DocumentNode;
+	resolvers: any;
 	context: ContextParams;
 	handleResolver: (args: ResolverParams) => void;
 	formatResponse: (response: GraphQLResponse, requestContext: GraphQLRequestContext<object>) => GraphQLResponse | null;
@@ -21,13 +30,13 @@ export declare interface ConfigOptions {
 /**
  * @method createDefaultConfig
  * @param configOptions ConfigOptions
- * @returns ApolloServerExpressConfig
+ * @returns ApolloConfig
  */
-export declare function createDefaultConfig(configOptions: ConfigOptions): ApolloServerExpressConfig;
+export declare function createDefaultConfig(configOptions: ConfigOptions): ApolloConfig;
 
 /**
  * @method startApolloServer Start apollo server with apply middleware express
- * @param config ApolloServerExpressConfig
+ * @param config ApolloConfig
  * @param app Express
  * @param httpServer Server
  * @param host string
@@ -36,12 +45,4 @@ export declare function createDefaultConfig(configOptions: ConfigOptions): Apoll
  * @param uploadOptions UploadOptions | undefined
  * @returns Promise<ApolloServer>
  */
-export declare function startApolloServer(
-	config: ApolloServerExpressConfig,
-	app: Express,
-	httpServer: Server,
-	host?: string,
-	port?: number,
-	path?: string,
-	uploadOptions?: UploadOptions,
-): Promise<ApolloServer>;
+export declare function startApolloServer(config: ApolloConfig, app: Express, httpServer: Server, host?: string, port?: number, path?: string, uploadOptions?: UploadOptions): Promise<ApolloServer>;

@@ -1,15 +1,15 @@
 import { ContextFunction } from "apollo-server-core";
-import { GraphQLResponse, GraphQLRequestContext } from "apollo-server-types";
-import { ApolloServer, ApolloServerExpressConfig, ExpressContext } from "apollo-server-express";
+import { ApolloServer, ApolloServerExpressConfig, ExpressContext, IEnumResolver, IResolverObject, IResolverOptions } from "apollo-server-express";
 import { BaseContext, GraphQLFieldResolverParams } from "apollo-server-plugin-base";
+import { GraphQLRequestContext, GraphQLResponse } from "apollo-server-types";
 import dotenv from "dotenv";
 import { Express } from "express";
-import { GraphQLSchema } from "graphql";
+import { DocumentNode, GraphQLScalarType } from "graphql";
+import { graphqlUploadExpress, UploadOptions } from "graphql-upload";
 import { Server } from "http";
 import { address } from "ip";
-import { graphqlUploadExpress, UploadOptions } from "graphql-upload";
-import { mergeSchemas } from "graphql-tools";
-import rootSchema from "./graphql";
+import resolvers from "./graphql/resolver_defs";
+import typeDefs from "./graphql/type_defs";
 
 dotenv.config();
 
@@ -17,8 +17,17 @@ export interface ResolverParams extends GraphQLFieldResolverParams<any, BaseCont
 
 export interface ContextParams extends Object, ContextFunction<ExpressContext, object> {}
 
+export interface IResolvers<TSource = any, TContext = any> {
+	[key: string]: (() => any) | IResolverObject<TSource, TContext> | IResolverOptions<TSource, TContext> | GraphQLScalarType | IEnumResolver;
+}
+
+export interface ApolloConfig extends ApolloServerExpressConfig {
+	typeDefs?: DocumentNode | DocumentNode[];
+}
+
 export interface ConfigOptions {
-	schema: GraphQLSchema;
+	typeDefs: DocumentNode;
+	resolvers: any;
 	context: ContextParams;
 	handleResolver: (args: ResolverParams) => void;
 	formatResponse: (response: GraphQLResponse, requestContext: GraphQLRequestContext<object>) => GraphQLResponse | null;
@@ -27,12 +36,13 @@ export interface ConfigOptions {
 /**
  * @method createDefaultConfig
  * @param configOptions ConfigOptions
- * @returns ApolloServerExpressConfig
+ * @returns ApolloConfig
  */
-export function createDefaultConfig(configOptions: ConfigOptions): ApolloServerExpressConfig {
-	const config: ApolloServerExpressConfig = {};
+export function createDefaultConfig(configOptions: ConfigOptions): ApolloConfig {
+	const config: ApolloConfig = {};
 
-	config.schema = configOptions.schema;
+	config.typeDefs = configOptions.typeDefs;
+	config.resolvers = configOptions.resolvers;
 	config.context = configOptions.context;
 	config.uploads = false;
 	config.tracing = process.env.NODE_ENV !== "production";
@@ -58,7 +68,7 @@ export function createDefaultConfig(configOptions: ConfigOptions): ApolloServerE
 
 /**
  * @method startApolloServer Start apollo server with apply middleware express
- * @param config ApolloServerExpressConfig
+ * @param config ApolloConfig
  * @param app Express
  * @param httpServer Server
  * @param host string
@@ -68,7 +78,7 @@ export function createDefaultConfig(configOptions: ConfigOptions): ApolloServerE
  * @returns Promise<ApolloServer>
  */
 export async function startApolloServer(
-	config: ApolloServerExpressConfig,
+	config: ApolloConfig,
 	app: Express,
 	httpServer: Server,
 	host = "0.0.0.0",
@@ -77,8 +87,18 @@ export async function startApolloServer(
 	uploadOptions?: UploadOptions,
 ): Promise<ApolloServer> {
 	// Init apollo server instance
-	if (config.schema) {
-		config.schema = mergeSchemas({ schemas: [rootSchema, config.schema] });
+	if (config.typeDefs && config.resolvers) {
+		if (config.typeDefs instanceof Array) {
+			config.typeDefs.push(typeDefs);
+		} else {
+			config.typeDefs = [typeDefs, config.typeDefs];
+		}
+
+		if (config.resolvers instanceof Array) {
+			config.resolvers.push(resolvers);
+		} else {
+			config.resolvers = [resolvers, config.resolvers];
+		}
 	}
 	const apolloServer = new ApolloServer(config);
 
