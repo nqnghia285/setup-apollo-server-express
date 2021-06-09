@@ -1,6 +1,6 @@
 {
 	"name": "setup-apollo-server-express",
-	"version": "1.4.6",
+	"version": "1.4.7",
 	"description": "Setup Apollo server express.",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
