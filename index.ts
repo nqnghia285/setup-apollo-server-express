@@ -1,36 +1,33 @@
-import { ContextFunction } from "apollo-server-core";
-import { ApolloServer, ApolloServerExpressConfig, ExpressContext, IEnumResolver, IResolverObject, IResolverOptions } from "apollo-server-express";
+import { ApolloServerPluginLandingPageGraphQLPlayground, ApolloServerPluginLandingPageDisabled, ContextFunction } from "apollo-server-core";
+import { ApolloServer, ApolloServerExpressConfig, ExpressContext } from "apollo-server-express";
 import { BaseContext, GraphQLFieldResolverParams } from "apollo-server-plugin-base";
 import { GraphQLRequestContext, GraphQLResponse } from "apollo-server-types";
-import dotenv from "dotenv";
+import { config } from "dotenv";
 import { Express } from "express";
-import { DocumentNode, GraphQLScalarType } from "graphql";
+import { DocumentNode, GraphQLSchema } from "graphql";
 import { graphqlUploadExpress, UploadOptions } from "graphql-upload";
 import { Server } from "http";
 import { address } from "ip";
 import resolvers from "./graphql/resolver_defs";
 import typeDefs from "./graphql/type_defs";
 
-dotenv.config();
+config();
 
 export interface ResolverParams extends GraphQLFieldResolverParams<any, BaseContext, { [argName: string]: any }> {}
 
 export interface ContextParams extends Object, ContextFunction<ExpressContext, object> {}
-
-export interface IResolvers<TSource = any, TContext = any> {
-	[key: string]: (() => any) | IResolverObject<TSource, TContext> | IResolverOptions<TSource, TContext> | GraphQLScalarType | IEnumResolver;
-}
 
 export interface ApolloConfig extends ApolloServerExpressConfig {
 	typeDefs?: DocumentNode | DocumentNode[];
 }
 
 export interface ConfigOptions {
-	typeDefs: DocumentNode;
-	resolvers: any;
-	context: ContextParams;
-	handleResolver: (args: ResolverParams) => void;
-	formatResponse: (response: GraphQLResponse, requestContext: GraphQLRequestContext<object>) => GraphQLResponse | null;
+	schema?: GraphQLSchema;
+	typeDefs?: DocumentNode;
+	resolvers?: any;
+	context?: ContextParams;
+	handleResolver?: (args: ResolverParams) => void;
+	formatResponse?: (response: GraphQLResponse, requestContext: GraphQLRequestContext<object>) => GraphQLResponse | null;
 }
 
 /**
@@ -41,20 +38,28 @@ export interface ConfigOptions {
 export function createDefaultConfig(configOptions: ConfigOptions): ApolloConfig {
 	const config: ApolloConfig = {};
 
-	config.typeDefs = configOptions.typeDefs;
-	config.resolvers = configOptions.resolvers;
+	if (configOptions.schema) {
+		config.schema = configOptions.schema;
+	} else {
+		config.typeDefs = configOptions.typeDefs;
+		config.resolvers = configOptions.resolvers;
+	}
+
 	config.context = configOptions.context;
-	config.uploads = false;
-	config.tracing = process.env.NODE_ENV !== "production";
 	config.formatResponse = configOptions.formatResponse;
 	config.plugins = [
+		process.env.NODE_ENV !== "production" ? ApolloServerPluginLandingPageGraphQLPlayground() : ApolloServerPluginLandingPageDisabled(),
 		{
-			requestDidStart(requestContext) {
+			async requestDidStart(requestContextDidStart) {
 				return {
-					executionDidStart(executionRequestContext) {
+					async executionDidStart(executionRequestContext) {
 						return {
 							willResolveField(fieldResolverParams: ResolverParams) {
-								configOptions.handleResolver(fieldResolverParams);
+								return (error: any, result: any) => {
+									if (configOptions.handleResolver) {
+										configOptions.handleResolver(fieldResolverParams);
+									}
+								};
 							},
 						};
 					},
@@ -87,19 +92,22 @@ export async function startApolloServer(
 	uploadOptions?: UploadOptions,
 ): Promise<ApolloServer> {
 	// Init apollo server instance
-	if (config.typeDefs && config.resolvers) {
-		if (config.typeDefs instanceof Array) {
-			config.typeDefs.push(typeDefs);
-		} else {
-			config.typeDefs = [typeDefs, config.typeDefs];
-		}
+	if (!config.schema) {
+		if (config.typeDefs && config.resolvers) {
+			if (config.typeDefs instanceof Array) {
+				config.typeDefs.push(typeDefs);
+			} else {
+				config.typeDefs = [typeDefs, config.typeDefs];
+			}
 
-		if (config.resolvers instanceof Array) {
-			config.resolvers.push(resolvers);
-		} else {
-			config.resolvers = [resolvers, config.resolvers];
+			if (config.resolvers instanceof Array) {
+				config.resolvers.push(resolvers);
+			} else {
+				config.resolvers = [resolvers, config.resolvers];
+			}
 		}
 	}
+
 	const apolloServer = new ApolloServer(config);
 
 	// Start apollo server

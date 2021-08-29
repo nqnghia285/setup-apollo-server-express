@@ -11,6 +11,6 @@
 		"skipLibCheck": true,
 		"forceConsistentCasingInFileNames": true
 	},
-	"include": ["lib", "graphql", "index.ts", "index.d.ts"],
+	"include": ["graphql", "index.ts", "index.d.ts"],
 	"exclude": ["node_modules", "dist"]
 }

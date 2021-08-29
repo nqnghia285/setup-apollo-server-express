@@ -36,8 +36,10 @@ import express from "express";
 import { Models } from "./interface";
 import models from "./database/models";
 import { startApolloServer, ResolverParams, ContextParams, ApolloConfig } from "setup-apollo-server-express";
+import { ApolloServerPluginLandingPageGraphQLPlayground, ApolloServerPluginLandingPageDisabled, ContextFunction } from "apollo-server-core";
 import typeDefs from "./graphql/type_defs";
 import resolvers from "./graphql/resolvers";
+import schema from "./graphql";
 import { makeExecutableSchema } from "@graphql-tools/chema";
 import { ExpressContext } from "apollo-server-express";
 
@@ -77,24 +79,34 @@ const configOptions: ConfigOptions = {
    formatResponse: formatResponse,
 }
 
+// Or
+const configOptions: ConfigOptions = {
+   schema: schema,
+   context: handleReq,
+   handleResolver: handleResolver,
+   formatResponse: formatResponse,
+}
+
 const config = createDefaultConfig(configOptions);
 
 // Or declare config as follow:
 const config: ApolloConfig = {
-   typeDefs: typeDefs,
-   resolvers: resolvers,
+   schema: schema,
 	context: handleReq,
-	uploads: false,
-	tracing: process.env.NODE_ENV !== "production",
 	formatResponse: formatResponse,
 	plugins: [
+		process.env.NODE_ENV !== "production" ? ApolloServerPluginLandingPageGraphQLPlayground() : ApolloServerPluginLandingPageDisabled(),
 		{
-			requestDidStart(requestContext) {
+			async requestDidStart(requestContextDidStart) {
 				return {
-					executionDidStart(executionRequestContext) {
+					async executionDidStart(executionRequestContext) {
 						return {
 							willResolveField(fieldResolverParams: ResolverParams) {
-								handleResolver(fieldResolverParams);
+								return (error: any, result: any) => {
+									if (configOptions.handleResolver) {
+										configOptions.handleResolver(fieldResolverParams);
+									}
+								};
 							},
 						};
 					},

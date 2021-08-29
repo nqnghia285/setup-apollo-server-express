@@ -1,9 +1,9 @@
 import { ContextFunction } from "apollo-server-core";
-import { ApolloServer, ApolloServerExpressConfig, ExpressContext, IEnumResolver, IResolverObject, IResolverOptions } from "apollo-server-express";
+import { ApolloServer, ApolloServerExpressConfig, ExpressContext } from "apollo-server-express";
 import { BaseContext, GraphQLFieldResolverParams } from "apollo-server-plugin-base";
 import { GraphQLRequestContext, GraphQLResponse } from "apollo-server-types";
 import { Express } from "express";
-import { DocumentNode, GraphQLScalarType } from "graphql";
+import { DocumentNode, GraphQLSchema } from "graphql";
 import { UploadOptions } from "graphql-upload";
 import { Server } from "http";
 
@@ -11,20 +11,17 @@ export declare interface ResolverParams extends GraphQLFieldResolverParams<any, 
 
 export declare interface ContextParams extends Object, ContextFunction<ExpressContext, object> {}
 
-export declare interface IResolvers<TSource = any, TContext = any> {
-	[key: string]: (() => any) | IResolverObject<TSource, TContext> | IResolverOptions<TSource, TContext> | GraphQLScalarType | IEnumResolver;
-}
-
 export declare interface ApolloConfig extends ApolloServerExpressConfig {
 	typeDefs?: DocumentNode | DocumentNode[];
 }
 
 export declare interface ConfigOptions {
-	typeDefs: DocumentNode;
-	resolvers: any;
-	context: ContextParams;
-	handleResolver: (args: ResolverParams) => void;
-	formatResponse: (response: GraphQLResponse, requestContext: GraphQLRequestContext<object>) => GraphQLResponse | null;
+	schema?: GraphQLSchema;
+	typeDefs?: DocumentNode;
+	resolvers?: any;
+	context?: ContextParams;
+	handleResolver?: (args: ResolverParams) => void;
+	formatResponse?: (response: GraphQLResponse, requestContext: GraphQLRequestContext<object>) => GraphQLResponse | null;
 }
 
 /**
