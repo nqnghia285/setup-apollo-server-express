@@ -55,6 +55,13 @@ export function createDefaultConfig(configOptions: ConfigOptions): ApolloConfig 
 					async executionDidStart(executionRequestContext) {
 						return {
 							willResolveField(fieldResolverParams: ResolverParams) {
+								const { context } = fieldResolverParams;
+								context.document = executionRequestContext.document;
+								context.operation = executionRequestContext.operation;
+								context.operationName = executionRequestContext.operationName;
+								context.queryHash = executionRequestContext.queryHash;
+								context.schema = executionRequestContext.schema;
+
 								return (error: any, result: any) => {
 									if (configOptions.handleResolver) {
 										configOptions.handleResolver(fieldResolverParams);
